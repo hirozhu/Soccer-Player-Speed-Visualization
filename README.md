@@ -16,4 +16,4 @@ in it. Then run the following command:
 
     Serving HTTP on 0.0.0.0 port 8000 ...
 
-5. And then you can open up http://localhost:8000 to find and view the D3 graph.
+5. And then you can open up http://localhost:8000/display.html to view the D3 graph.
