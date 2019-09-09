@@ -44,3 +44,7 @@ be clear nor pretty.
 3. Currently there are two seperate program: 'parser.ts' to parse the original tracking 
 data into the csv format that I need; and 'display.html' to read the csv file and show 
 the d3 graph. Next step I should combine them into one program. 
+
+4. Transforming the original data into a csv file might be an unnecessary extra step, 
+since csv file is very big and it makes the render very slow. I should think other ways 
+to display.
