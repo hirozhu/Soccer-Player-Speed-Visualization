@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "fast-csv": "^3.4.0",
     "fs": "0.0.1-security",
     "mz": "^2.7.0",
     "parser": "^0.1.4",

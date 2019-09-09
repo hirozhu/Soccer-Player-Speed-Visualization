@@ -6,19 +6,17 @@
 <script src="https://d3js.org/d3.v4.js"></script>
 
 <!-- Create a div where the graph will take place -->
-<div id="my_dataviz"></div>
-
-<div>Hello</div>
+<div id="player_speed_line_chart"></div>
 
 <script>
 
 // set the dimensions and margins of the graph
 var margin = {top: 10, right: 30, bottom: 30, left: 60},
-    width = 460 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
+    width = 1000 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
-var svg = d3.select("#my_dataviz")
+var svg = d3.select("#player_speed_line_chart")
   .append("svg")
     .attr("width", width + margin.left + margin.right)
     .attr("height", height + margin.top + margin.bottom)
@@ -28,23 +26,21 @@ var svg = d3.select("#my_dataviz")
 
 
 //Read the data
-d3.csv("mock.csv", function(data) {
+d3.csv("player_speed.csv", function(data) {
 
-  console.log("data: ", data);
-// group the data: I want to draw one line per group
-var sumstat = d3.nest() // nest function allows to group the calculation per level of a factor
+// group the data: to draw one line per player
+var sumstat = d3.nest() 
   .key(function(d) { return d.playerId;})
   .entries(data);
 
-console.log("sumstat: ", sumstat);
-
-// Add X axis --> it is a date format
+// Add X axis
 var x = d3.scaleLinear()
-  .domain(d3.extent(data, function(d) { return d.frameIdx; }))
+  .domain(d3.extent(data, function(d) { return +d.frameIdx; }))
   .range([ 0, width ]);
 svg.append("g")
-  .attr("transform", "translate(0," + height + ")")
-  .call(d3.axisBottom(x).ticks(5));
+  .call(d3.axisBottom(x))
+  .attr("transform", "translate(0," + height + ")");
+
 
 // Add Y axis
 var y = d3.scaleLinear()

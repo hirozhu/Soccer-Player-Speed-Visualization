@@ -1,14 +1,8 @@
 import * as fs from 'mz/fs';
-import path from 'path';
-import readline from 'readline';
-// import { LiveMarking } from '@src/models';
+import * as path from 'path';
+import * as readline from 'readline';
 import { Parser } from 'parser';
-
-// type Track = {
-//   period: number;
-//   frameIdx: number;
-//   live: boolean;
-// };
+import * as fastcsv from 'fast-csv';
 
 type Player = {
     playerId: number;
@@ -27,52 +21,45 @@ type SpeedInfo = {
     speed: number;
 }
 
-async function readDir(dirPath: string): Promise<string[]> {
+async function readDir(dirPath: string): Promise<string> {
   return fs.readdir(dirPath);
 }
 
 export class PlayerSpeedParser implements Parser {
-//   markings: LiveMarking[] = [];
-  path: string;
-  previousLive: boolean = false;
-  startLiveFrame: number = 0;
-  offset: Map<number, number> = new Map();
+  filename: string;
+  data: SpeedInfo[] = [];
 
-  constructor(dirPath: string) {
-    this.path = dirPath;
+  constructor(filename: string) {
+    this.filename = filename;
   }
 
   async parse(frameInfo: FrameInfo): Promise<void> {
-      console.log(frameInfo);
-    // // start live
-    // if (!this.previousLive && track.live) {
-    //   this.startLiveFrame = track.frameIdx;
 
-    //   if (!this.offset.has(track.period)) {
-    //     this.offset.set(track.period, track.frameIdx);
-    //   }
-    // }
+    let homePlayers = frameInfo.homePlayers;
+    let awayPlayers = frameInfo.awayPlayers;
 
-    // // start dead
-    // if (this.previousLive && !track.live) {
-    //   const periodOffset = this.offset.get(track.period) || 0;
+    for (const homePlayer of homePlayers){
+      let speedInfo: SpeedInfo = {
+        frameIdx: frameInfo.frameIdx,
+        playerId: homePlayer.playerId,
+        speed: homePlayer.speed
+      };
+      this.data.push(speedInfo);
+    }
 
-    //   const marking: LiveMarking = {
-    //     startFrame: this.startLiveFrame - periodOffset,
-    //     endFrame: track.frameIdx - periodOffset,
-    //     period: track.period,
-    //     source: 'ssi',
-    //   };
-
-    //   this.markings.push(marking);
-    //   console.log(marking);
-    // }
-
-    // this.previousLive = track.live;
+    for (const awayPlayer of awayPlayers){
+      let speedInfo: SpeedInfo = {
+        frameIdx: frameInfo.frameIdx,
+        playerId: awayPlayer.playerId,
+        speed: awayPlayer.speed
+      };
+      this.data.push(speedInfo);
+    }
   }
 
-  async importPlayerSpeeds(file: string): Promise<void> {
-    const stream = fs.createReadStream(path.join(this.path, file));
+  async importPlayerSpeeds(filename: string): Promise<void> {
+    const stream = fs.createReadStream(filename);
+
     const reader = readline.createInterface(stream);
     /* tslint:disable */
     for await (const line of reader) {
@@ -80,7 +67,6 @@ export class PlayerSpeedParser implements Parser {
         const frameInfo: FrameInfo = JSON.parse(line);
         this.parse(frameInfo);
       } catch (e) {
-        console.log(line);
         console.log(e);
       }
     }
@@ -90,10 +76,11 @@ export class PlayerSpeedParser implements Parser {
   }
 
   async start() {
-    const files = await readDir(this.path);
-
-    for (const file of files) {
-      await this.importPlayerSpeeds(file);
-    }
+    await this.importPlayerSpeeds(this.filename);
+  
+    const ws = fs.createWriteStream("player_speed.csv");
+    fastcsv
+      .write(this.data, { headers: true })
+      .pipe(ws);
   }
 }
